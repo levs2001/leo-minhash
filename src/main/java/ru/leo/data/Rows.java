@@ -1,4 +1,4 @@
-package ru.leo.data.json;
+package ru.leo.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,14 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import ru.leo.data.Chunk;
-import ru.leo.data.IChunkHolder;
-import ru.leo.data.Row;
-
 /**
  * For simple mapping with jackson.
  */
-public record Rows(List<Row> rows, Map<Long, Row> rowMap) implements IChunkHolder {
+public record Rows(List<Row> rows, Map<Long, Row> rowMap) implements IRowsHolder {
     public Rows() {
         this(new ArrayList<>(), new HashMap<>());
     }
@@ -23,10 +19,12 @@ public record Rows(List<Row> rows, Map<Long, Row> rowMap) implements IChunkHolde
         rows.add(row);
     }
 
+    @Override
     public Row getRow(long id) {
         return rowMap.get(id);
     }
 
+    @Override
     public List<Row> getRows(List<Long> ids) {
         return ids.stream().map(rowMap::get).filter(Objects::nonNull).toList();
     }

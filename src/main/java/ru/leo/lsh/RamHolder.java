@@ -8,35 +8,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class RamHolder<T> implements IHolder<T> {
     private static final String BUCKETS_FILE = "buckets.json";
     private static final String CONFIG_FILE = "config.json";
 
-    private final ObjectMapper mapper = new ObjectMapper();
     // stagesCount - count of minhashes
-
     private final List<List<Set<T>>> stageBuckets;
     private final IBucketsProducer bucketsProducer;
     private final Config config;
 
-    public RamHolder(Config config) {
+    private RamHolder(Config config, List<List<Set<T>>> stageBuckets) {
         this.config = config;
-        stageBuckets = new ArrayList<>(config.stagesCount);
-        for (int i = 0; i < config.stagesCount; i++) {
-            List<Set<T>> stage = new ArrayList<>(config.bucketsCount);
-            for (int j = 0; j < config.bucketsCount; j++) {
-                stage.add(new HashSet<>());
-            }
-            stageBuckets.add(stage);
-        }
-
+        this.stageBuckets = stageBuckets;
         bucketsProducer = new BucketsProducer(config.stagesCount, config.bucketsCount, config.bucketsLineSize);
-    }
-
-    public RamHolder(int stagesCount, int bucketsCount, int bucketsLineSize) {
-        this(new Config(stagesCount, bucketsCount, bucketsLineSize));
     }
 
     @Override
@@ -63,10 +50,41 @@ public class RamHolder<T> implements IHolder<T> {
     @Override
     public void save(Path path) throws IOException {
         Files.createDirectory(path);
+        ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(path.resolve(BUCKETS_FILE).toFile(), stageBuckets);
         mapper.writeValue(path.resolve(CONFIG_FILE).toFile(), config);
     }
 
     public record Config(int stagesCount, int bucketsCount, int bucketsLineSize) {
+    }
+
+    public static <T> RamHolder<T> create(Config config) {
+        List<List<Set<T>>> stageBuckets = new ArrayList<>(config.stagesCount);
+        for (int i = 0; i < config.stagesCount; i++) {
+            List<Set<T>> stage = new ArrayList<>(config.bucketsCount);
+            for (int j = 0; j < config.bucketsCount; j++) {
+                stage.add(new HashSet<>());
+            }
+            stageBuckets.add(stage);
+        }
+
+        return new RamHolder<>(config, stageBuckets);
+    }
+
+    public static <T> RamHolder<T> create(int stagesCount, int bucketsCount, int bucketsLineSize) {
+        return create(new Config(stagesCount, bucketsCount, bucketsLineSize));
+    }
+
+    /**
+     * Only for long because int and long is json can be same.
+     */
+    public static RamHolder<Long> fromFile(Path path) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Config config = mapper.readValue(path.resolve(CONFIG_FILE).toFile(), new TypeReference<>() {
+        });
+        List<List<Set<Long>>> stageBuckets = mapper.readValue(path.resolve(BUCKETS_FILE).toFile(), new TypeReference<>() {
+        });
+
+        return new RamHolder<>(config, stageBuckets);
     }
 }

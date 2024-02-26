@@ -10,9 +10,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.leo.data.Chunk;
 import ru.leo.data.IParser;
+import ru.leo.data.IRowsHolder;
 import ru.leo.data.Row;
+import ru.leo.data.Rows;
 
-public class InRamJsonParser implements IParser {
+public class InRamJsonParser implements IParser, IRowsHolder {
     private final ObjectMapper mapper = new ObjectMapper() {{
         configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }};
@@ -33,5 +35,15 @@ public class InRamJsonParser implements IParser {
     @Override
     public List<Row> getRows(Chunk chunk) {
         return rows.getRows(chunk);
+    }
+
+    @Override
+    public Row getRow(long id) {
+        return rows.getRow(id);
+    }
+
+    @Override
+    public List<Row> getRows(List<Long> ids) {
+        return rows.getRows(ids);
     }
 }
