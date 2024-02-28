@@ -40,6 +40,8 @@ public class RamHolder<T> implements IHolder<T> {
     public List<T> findNearest(String text) {
         int[] currentBuckets = bucketsProducer.buckets(text);
         Set<T> nearest = new HashSet<>(stageBuckets.get(0).get(currentBuckets[0]));
+        // TODO: Надо не все бакеты пересекать, а то он только дубликаты ищет
+        //  (регулировать точность, пересекать без одного и объединять, например).
         for (int i = 1; i < currentBuckets.length; i++) {
             nearest.retainAll(stageBuckets.get(i).get(currentBuckets[i]));
         }

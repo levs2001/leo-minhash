@@ -60,3 +60,4 @@ public class Main {
         log.info("Duplicate rows: {}", parser.getRows(nearest));
     }
 }
+

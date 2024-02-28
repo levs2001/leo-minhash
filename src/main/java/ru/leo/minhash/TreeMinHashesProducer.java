@@ -74,7 +74,7 @@ public class TreeMinHashesProducer implements IMinHashesProducer {
 
     // TODO: Более эффективный хеш
     private static long hash(long a, int b) {
-        long result = (31 + a) * 31 + b;;
+        long result = (31 + a) * 31 + b;
         for (int i = 0; i < b; i++) {
             result = (31 + result) * 31 + b;
         }
